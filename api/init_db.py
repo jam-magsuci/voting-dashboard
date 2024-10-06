@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-DATABASE = '/tmp/database.db'
+# Use the same relative path as in app.py
+DATABASE = os.path.join(os.path.dirname(__file__), 'database.db')
 
 connection = sqlite3.connect(DATABASE)
 

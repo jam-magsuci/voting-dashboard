@@ -31,8 +31,8 @@ def load_user(user_id):
         return User(user['id'], user['username'])
     return None
 
-# Update your database path
-DATABASE = '/tmp/database.db'
+# Use a relative path for the database
+DATABASE = os.path.join(os.path.dirname(__file__), 'database.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
