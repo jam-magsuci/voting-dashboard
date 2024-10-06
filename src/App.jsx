@@ -84,10 +84,10 @@ function App() {
     }
   }
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = useCallback(() => {
     setIsAuthenticated(true)
     fetchAudiobooks()
-  }
+  }, [])
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -118,7 +118,7 @@ function App() {
         </nav>
         <Routes>
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/signup" element={<Signup onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/" element={
             isAuthenticated ? (
               <div>

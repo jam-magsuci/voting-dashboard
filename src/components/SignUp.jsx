@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -22,7 +23,6 @@ function Signup({ onLoginSuccess }) {
       });
 
       if (signupResponse.ok) {
-        // Signup successful, now attempt to log in
         const loginResponse = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
@@ -33,7 +33,9 @@ function Signup({ onLoginSuccess }) {
         });
 
         if (loginResponse.ok) {
-          onLoginSuccess(); // Call the function passed from App component
+          if (typeof onLoginSuccess === 'function') {
+            onLoginSuccess(); // Call the function passed from App component
+          }
           navigate('/');
         } else {
           const data = await loginResponse.json();
@@ -107,5 +109,9 @@ function Signup({ onLoginSuccess }) {
     </div>
   );
 }
+
+Signup.propTypes = {
+  onLoginSuccess: PropTypes.func,
+};
 
 export default Signup;
