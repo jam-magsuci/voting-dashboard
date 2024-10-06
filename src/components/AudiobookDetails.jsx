@@ -5,10 +5,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function AudiobookDetails() {
   const [audiobook, setAudiobook] = useState(null)
+  const [hasVoted, setHasVoted] = useState(false)
   const { id } = useParams()
   const navigate = useNavigate()
 
   useEffect(() => {
+    fetchAudiobook()
+    checkUserVote()
+  }, [id, navigate])
+
+  const fetchAudiobook = () => {
     fetch(`${API_URL}/api/audiobooks/${id}`, {
       credentials: 'include',
     })
@@ -28,9 +34,36 @@ function AudiobookDetails() {
           console.error('Error fetching audiobook:', error)
         }
       })
-  }, [id, navigate])
+  }
+
+  const checkUserVote = () => {
+    fetch(`${API_URL}/api/audiobooks/${id}/user_vote`, {
+      credentials: 'include',
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else if (response.status === 401) {
+          throw new Error('Unauthorized')
+        }
+        throw new Error('Failed to check user vote')
+      })
+      .then(data => setHasVoted(data.has_voted))
+      .catch(error => {
+        if (error.message === 'Unauthorized') {
+          navigate('/login')
+        } else {
+          console.error('Error checking user vote:', error)
+        }
+      })
+  }
 
   const handleVote = () => {
+    if (hasVoted) {
+      alert('You have already voted for this audiobook')
+      return
+    }
+
     fetch(`${API_URL}/api/audiobooks/${id}/vote`, {
       method: 'POST',
       credentials: 'include',
@@ -40,13 +73,20 @@ function AudiobookDetails() {
           return response.json()
         } else if (response.status === 401) {
           throw new Error('Unauthorized')
+        } else if (response.status === 400) {
+          throw new Error('Already voted')
         }
         throw new Error('Failed to vote')
       })
-      .then(data => setAudiobook(data))
+      .then(data => {
+        setAudiobook(data)
+        setHasVoted(true)
+      })
       .catch(error => {
         if (error.message === 'Unauthorized') {
           navigate('/login')
+        } else if (error.message === 'Already voted') {
+          alert('You have already voted for this audiobook')
         } else {
           console.error('Error voting:', error)
         }
@@ -74,9 +114,12 @@ function AudiobookDetails() {
           <div className="mt-6 flex items-center">
             <button
               onClick={handleVote}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+              className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4 ${
+                hasVoted ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={hasVoted}
             >
-              Vote for this Audiobook
+              {hasVoted ? 'Already Voted' : 'Vote for this Audiobook'}
             </button>
             <Link
               to="/"

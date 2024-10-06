@@ -10,6 +10,7 @@ function App() {
   const [audiobooks, setAudiobooks] = useState([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [userVotes, setUserVotes] = useState({})
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -42,6 +43,7 @@ function App() {
       if (response.ok) {
         const data = await response.json()
         setAudiobooks(data)
+        fetchUserVotes(data.map(book => book.id))
       } else {
         console.error('Failed to fetch audiobooks')
       }
@@ -50,7 +52,30 @@ function App() {
     }
   }
 
+  const fetchUserVotes = async (audiobookIds) => {
+    try {
+      const votePromises = audiobookIds.map(id =>
+        fetch(`${API_URL}/api/audiobooks/${id}/user_vote`, {
+          credentials: 'include',
+        }).then(res => res.json())
+      )
+      const voteResults = await Promise.all(votePromises)
+      const newUserVotes = {}
+      audiobookIds.forEach((id, index) => {
+        newUserVotes[id] = voteResults[index].has_voted
+      })
+      setUserVotes(newUserVotes)
+    } catch (error) {
+      console.error('Error fetching user votes:', error)
+    }
+  }
+
   const handleVote = async (id) => {
+    if (userVotes[id]) {
+      alert('You have already voted for this audiobook')
+      return
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/audiobooks/${id}/vote`, {
         method: 'POST',
@@ -59,6 +84,9 @@ function App() {
       if (response.ok) {
         const data = await response.json()
         setAudiobooks(audiobooks.map(book => book.id === id ? data : book))
+        setUserVotes(prevVotes => ({ ...prevVotes, [id]: true }))
+      } else if (response.status === 400) {
+        alert('You have already voted for this audiobook')
       } else {
         console.error('Failed to vote')
       }
@@ -139,9 +167,12 @@ function App() {
                         </Link>
                         <button
                           onClick={() => handleVote(book.id)}
-                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                          className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ${
+                            userVotes[book.id] ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={userVotes[book.id]}
                         >
-                          Vote
+                          {userVotes[book.id] ? 'Already Voted' : 'Vote'}
                         </button>
                       </div>
                     </li>
