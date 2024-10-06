@@ -8,9 +8,9 @@ from functools import wraps
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.secret_key = os.urandom(24)  # Generate a random secret key for sessions
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True  # Set to True in production with HTTPS
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 # Initialize Flask-Login
 login_manager = LoginManager()
