@@ -10,9 +10,9 @@ CREATE TABLE audiobooks (
 );
 
 INSERT INTO audiobooks (title, description, author, cover_image) VALUES 
-('The Great Gatsby', 'A classic novel about the American Dream', 'F. Scott Fitzgerald', 'https://picsum.photos/200/300'),
-('To Kill a Mockingbird', 'A powerful story of racial injustice', 'Harper Lee', 'https://picsum.photos/200/300'),
-('1984', 'A dystopian novel about totalitarian control', 'George Orwell', 'https://picsum.photos/200/300');
+('The Great Gatsby', 'A classic novel about the American Dream', 'F. Scott Fitzgerald', 'https://i.imgur.com/jcoNT4k.png'),
+('To Kill a Mockingbird', 'A powerful story of racial injustice', 'Harper Lee', 'https://i.imgur.com/EMFWAuR.png'),
+('1984', 'A dystopian novel about totalitarian control', 'George Orwell', 'https://i.imgur.com/nkbaCWJ.png');
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
