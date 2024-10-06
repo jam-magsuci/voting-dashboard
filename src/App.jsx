@@ -4,6 +4,8 @@ import AudiobookDetails from './components/AudiobookDetails'
 import Login from './components/Login'
 import Signup from './components/SignUp'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function App() {
   const [audiobooks, setAudiobooks] = useState([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -11,7 +13,7 @@ function App() {
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/audiobooks', {
+      const response = await fetch(`${API_URL}/api/audiobooks`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -34,7 +36,7 @@ function App() {
 
   const fetchAudiobooks = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/audiobooks', {
+      const response = await fetch(`${API_URL}/api/audiobooks`, {
         credentials: 'include',
       })
       if (response.ok) {
@@ -50,7 +52,7 @@ function App() {
 
   const handleVote = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, {
+      const response = await fetch(`${API_URL}/api/audiobooks/${id}/vote`, {
         method: 'POST',
         credentials: 'include',
       })
@@ -67,7 +69,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/logout', {
+      const response = await fetch(`${API_URL}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       })

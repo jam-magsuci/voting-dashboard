@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function Signup({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -10,7 +12,7 @@ function Signup({ onLoginSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const signupResponse = await fetch('http://localhost:5000/api/signup', {
+      const signupResponse = await fetch(`${API_URL}/api/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,7 +23,7 @@ function Signup({ onLoginSuccess }) {
 
       if (signupResponse.ok) {
         // Signup successful, now attempt to log in
-        const loginResponse = await fetch('http://localhost:5000/api/login', {
+        const loginResponse = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

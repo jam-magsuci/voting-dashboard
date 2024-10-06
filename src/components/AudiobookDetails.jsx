@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function AudiobookDetails() {
   const [audiobook, setAudiobook] = useState(null)
   const { id } = useParams()
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/audiobooks/${id}`, {
+    fetch(`${API_URL}/api/audiobooks/${id}`, {
       credentials: 'include',
     })
       .then(response => {
@@ -29,7 +31,7 @@ function AudiobookDetails() {
   }, [id, navigate])
 
   const handleVote = () => {
-    fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, {
+    fetch(`${API_URL}/api/audiobooks/${id}/vote`, {
       method: 'POST',
       credentials: 'include',
     })
