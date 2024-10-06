@@ -19,3 +19,12 @@ CREATE TABLE users (
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
 );
+
+CREATE TABLE user_votes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    audiobook_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (audiobook_id) REFERENCES audiobooks (id),
+    UNIQUE (user_id, audiobook_id)
+);
