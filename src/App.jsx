@@ -123,71 +123,68 @@ function App() {
 
   return (
     <Router>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Audiobook Voting Dashboard</h1>
-        <nav className="mb-4">
-          {isAuthenticated ? (
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          ) : (
-            <>
-              <Link to="/login" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
-                Login
-              </Link>
-              <Link to="/signup" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Signup
-              </Link>
-            </>
-          )}
-        </nav>
-        <Routes>
-          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/signup" element={<Signup onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/" element={
-            isAuthenticated ? (
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">Audiobook List</h2>
-                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {audiobooks.map(book => (
-                    <li key={book.id} className="bg-white shadow rounded-lg p-4">
-                      <img src={book.cover_image} alt={book.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-                      <h3 className="text-xl font-semibold">{book.title}</h3>
-                      <p className="text-gray-600">by {book.author}</p>
-                      <p className="mt-2">Votes: {book.vote_count}</p>
-                      <div className="mt-4 flex justify-between items-center">
-                        <Link
-                          to={`/audiobook/${book.id}`}
-                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        >
-                          View Details
-                        </Link>
-                        <button
-                          onClick={() => handleVote(book.id)}
-                          className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ${
-                            userVotes[book.id] ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                          disabled={userVotes[book.id]}
-                        >
-                          {userVotes[book.id] ? 'Already Voted' : 'Vote'}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        <div className="flex flex-col p-[30px] gap-y-[30px]">
+            <h1 className="text-center text-[30px] font-bold">Audiobook Voting Dashboard</h1>
+            <nav className="flex flex-row justify-center gap-x-[10px] w-full">
+            {isAuthenticated ? (
+                <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                Logout
+                </button>
             ) : (
-              <Navigate to="/login" />
-            )
-          } />
-          <Route path="/audiobook/:id" element={
-            isAuthenticated ? <AudiobookDetails /> : <Navigate to="/login" />
-          } />
-        </Routes>
-      </div>
+                <>
+                <Link to="/login" className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 mr-2 w-full text-center">
+                    Login
+                </Link>
+                <Link to="/signup" className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 w-full text-center">
+                    Signup
+                </Link>
+                </>
+            )}
+            </nav>
+            <Routes>
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/signup" element={<Signup onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/" element={
+                isAuthenticated ? (
+                    <ul className="flex flex-row flex-wrap gap-[30px] justify-center items-center">
+                    {audiobooks.map(book => (
+                        <li key={book.id} className="bg-white shadow rounded-lg p-4 flex flex-col gap-y-[10px] w-[320px]">
+                            <img src={book.cover_image} alt={book.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+                            <h3 className="text-xl font-bold text-black">{book.title}</h3>
+                            <p className="text-gray-600">by {book.author}</p>
+                            <p className="text-gray-600">Votes: {book.vote_count}</p>
+                            <div className="mt-4 flex flex-row justify-between items-center gap-x-[10px]">
+                                <Link
+                                to={`/audiobook/${book.id}`}
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+                                >
+                                View Details
+                                </Link>
+                                <button
+                                onClick={() => handleVote(book.id)}
+                                className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full ${
+                                    userVotes[book.id] ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                                disabled={userVotes[book.id]}
+                                >
+                                {userVotes[book.id] ? 'Already Voted' : 'Vote'}
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                    </ul>
+                ) : (
+                <Navigate to="/login" />
+                )
+            } />
+            <Route path="/audiobook/:id" element={
+                isAuthenticated ? <AudiobookDetails /> : <Navigate to="/login" />
+            } />
+            </Routes>
+        </div>
     </Router>
   )
 }
