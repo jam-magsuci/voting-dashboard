@@ -7,10 +7,15 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=['https://voting-dashboard-homepage.onrender.com', 'http://localhost:5173'])
+CORS(app, supports_credentials=True, origins=['https://voting-dashboard-frontend.onrender.com', 'http://localhost:5173'])
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-app.config['SESSION_COOKIE_SECURE'] = True  # Set to True in production with HTTPS
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SESSION_COOKIE_SECURE'] = True
+
+# Set a default secret key for development
+default_secret_key = 'your-development-secret-key'  # Change this to a random string
+
+# Use environment variable in production, fall back to default in development
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', default_secret_key)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
