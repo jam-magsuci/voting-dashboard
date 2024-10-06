@@ -7,10 +7,15 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
-app.secret_key = os.urandom(24)  # Generate a random secret key for sessions
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+CORS(app, supports_credentials=True, origins=['https://voting-dashboard-homepage.onrender.com', 'http://localhost:5173'])
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
+
+# Set a default secret key for development
+default_secret_key = 'your-development-secret-key'  # Change this to a random string
+
+# Use environment variable in production, fall back to default in development
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', default_secret_key)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -31,8 +36,11 @@ def load_user(user_id):
         return User(user['id'], user['username'])
     return None
 
+# Use a relative path for the database
+DATABASE = os.path.join(os.path.dirname(__file__), 'database.db')
+
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -62,16 +70,39 @@ def get_audiobook(id):
 @login_required
 def vote_audiobook(id):
     conn = get_db_connection()
+    
+    # Check if the user has already voted for this audiobook
+    existing_vote = conn.execute('SELECT * FROM user_votes WHERE user_id = ? AND audiobook_id = ?', 
+                                 (current_user.id, id)).fetchone()
+    
+    if existing_vote:
+        conn.close()
+        return jsonify({"error": "You have already voted for this audiobook"}), 400
+    
     audiobook = conn.execute('SELECT * FROM audiobooks WHERE id = ?', (id,)).fetchone()
     if audiobook is None:
         conn.close()
         return jsonify({"error": "Audiobook not found"}), 404
     
+    # Record the user's vote
+    conn.execute('INSERT INTO user_votes (user_id, audiobook_id) VALUES (?, ?)', (current_user.id, id))
+    
+    # Increment the vote count
     conn.execute('UPDATE audiobooks SET vote_count = vote_count + 1 WHERE id = ?', (id,))
     conn.commit()
+    
     updated_audiobook = conn.execute('SELECT * FROM audiobooks WHERE id = ?', (id,)).fetchone()
     conn.close()
     return jsonify(dict(updated_audiobook))
+
+@app.route('/api/audiobooks/<int:id>/user_vote', methods=['GET'])
+@login_required
+def get_user_vote(id):
+    conn = get_db_connection()
+    vote = conn.execute('SELECT * FROM user_votes WHERE user_id = ? AND audiobook_id = ?', 
+                        (current_user.id, id)).fetchone()
+    conn.close()
+    return jsonify({"has_voted": vote is not None})
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -126,4 +157,10 @@ def unauthorized():
     return jsonify({"error": "Unauthorized"}), 401
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    if not os.path.exists(DATABASE):
+        with app.app_context():
+            db = get_db_connection()
+            with app.open_resource('schema.sql', mode='r') as f:
+                db.cursor().executescript(f.read())
+            db.commit()
+    app.run(debug=False)

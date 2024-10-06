@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function Signup({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
@@ -10,7 +13,7 @@ function Signup({ onLoginSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const signupResponse = await fetch('http://localhost:5000/api/signup', {
+      const signupResponse = await fetch(`${API_URL}/api/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -20,8 +23,7 @@ function Signup({ onLoginSuccess }) {
       });
 
       if (signupResponse.ok) {
-        // Signup successful, now attempt to log in
-        const loginResponse = await fetch('http://localhost:5000/api/login', {
+        const loginResponse = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -31,7 +33,9 @@ function Signup({ onLoginSuccess }) {
         });
 
         if (loginResponse.ok) {
-          onLoginSuccess(); // Call the function passed from App component
+          if (typeof onLoginSuccess === 'function') {
+            onLoginSuccess(); // Call the function passed from App component
+          }
           navigate('/');
         } else {
           const data = await loginResponse.json();
@@ -48,7 +52,7 @@ function Signup({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="rounded-lg flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -57,7 +61,7 @@ function Signup({ onLoginSuccess }) {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <input type="hidden" name="remember" defaultValue="true" />
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="flex flex-col gap-y-[10px]">
             <div>
               <label htmlFor="username" className="sr-only">
                 Username
@@ -67,7 +71,7 @@ function Signup({ onLoginSuccess }) {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="w-full px-3 py-2 placeholder-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-slate-300"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -82,7 +86,7 @@ function Signup({ onLoginSuccess }) {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="w-full px-3 py-2 placeholder-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-slate-300"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -105,5 +109,9 @@ function Signup({ onLoginSuccess }) {
     </div>
   );
 }
+
+Signup.propTypes = {
+  onLoginSuccess: PropTypes.func,
+};
 
 export default Signup;

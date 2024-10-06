@@ -27,3 +27,4 @@ api/database.db
 api/venv/
 api/__pycache__/
 api/.env
+api/tmp/
