@@ -31,8 +31,11 @@ def load_user(user_id):
         return User(user['id'], user['username'])
     return None
 
+# Update your database path
+DATABASE = '/tmp/database.db'
+
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -126,4 +129,10 @@ def unauthorized():
     return jsonify({"error": "Unauthorized"}), 401
 
 if __name__ == '__main__':
+    if not os.path.exists(DATABASE):
+        with app.app_context():
+            db = get_db_connection()
+            with app.open_resource('schema.sql', mode='r') as f:
+                db.cursor().executescript(f.read())
+            db.commit()
     app.run(debug=True)
