@@ -1,20 +1,54 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 
 function AudiobookDetails() {
   const [audiobook, setAudiobook] = useState(null)
   const { id } = useParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/audiobooks/${id}`)
-      .then(response => response.json())
+    fetch(`http://localhost:5000/api/audiobooks/${id}`, {
+      credentials: 'include',
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else if (response.status === 401) {
+          throw new Error('Unauthorized')
+        }
+        throw new Error('Failed to fetch audiobook')
+      })
       .then(data => setAudiobook(data))
-  }, [id])
+      .catch(error => {
+        if (error.message === 'Unauthorized') {
+          navigate('/login')
+        } else {
+          console.error('Error fetching audiobook:', error)
+        }
+      })
+  }, [id, navigate])
 
   const handleVote = () => {
-    fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, { method: 'POST' })
-      .then(response => response.json())
+    fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else if (response.status === 401) {
+          throw new Error('Unauthorized')
+        }
+        throw new Error('Failed to vote')
+      })
       .then(data => setAudiobook(data))
+      .catch(error => {
+        if (error.message === 'Unauthorized') {
+          navigate('/login')
+        } else {
+          console.error('Error voting:', error)
+        }
+      })
   }
 
   if (!audiobook) {
