@@ -1,59 +1,158 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom'
 import AudiobookDetails from './components/AudiobookDetails'
+import Login from './components/Login'
+import Signup from './components/SignUp'
 
 function App() {
   const [audiobooks, setAudiobooks] = useState([])
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/audiobooks')
-      .then(response => response.json())
-      .then(data => setAudiobooks(data))
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/audiobooks', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setIsAuthenticated(true)
+        fetchAudiobooks()
+      } else {
+        setIsAuthenticated(false)
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+      setIsAuthenticated(false)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
-  const handleVote = (id) => {
-    fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, { method: 'POST' })
-      .then(response => response.json())
-      .then(data => {
-        setAudiobooks(audiobooks.map(book => book.id === id ? data : book))
+  useEffect(() => {
+    checkAuthStatus()
+  }, [checkAuthStatus])
+
+  const fetchAudiobooks = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/audiobooks', {
+        credentials: 'include',
       })
+      if (response.ok) {
+        const data = await response.json()
+        setAudiobooks(data)
+      } else {
+        console.error('Failed to fetch audiobooks')
+      }
+    } catch (error) {
+      console.error('Error fetching audiobooks:', error)
+    }
+  }
+
+  const handleVote = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/audiobooks/${id}/vote`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setAudiobooks(audiobooks.map(book => book.id === id ? data : book))
+      } else {
+        console.error('Failed to vote')
+      }
+    } catch (error) {
+      console.error('Error voting:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        setIsAuthenticated(false)
+        setAudiobooks([])
+      } else {
+        console.error('Failed to logout')
+      }
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+    fetchAudiobooks()
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
   }
 
   return (
     <Router>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Audiobook Voting Dashboard</h1>
+        <nav className="mb-4">
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
+                Login
+              </Link>
+              <Link to="/signup" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                Signup
+              </Link>
+            </>
+          )}
+        </nav>
         <Routes>
+          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/" element={
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Audiobook List</h2>
-              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {audiobooks.map(book => (
-                  <li key={book.id} className="bg-white shadow rounded-lg p-4">
-                    <img src={book.cover_image} alt={book.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-                    <h3 className="text-xl font-semibold">{book.title}</h3>
-                    <p className="text-gray-600">by {book.author}</p>
-                    <p className="mt-2">Votes: {book.vote_count}</p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <Link
-                        to={`/audiobook/${book.id}`}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        View Details
-                      </Link>
-                      <button
-                        onClick={() => handleVote(book.id)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                      >
-                        Vote
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            isAuthenticated ? (
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">Audiobook List</h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {audiobooks.map(book => (
+                    <li key={book.id} className="bg-white shadow rounded-lg p-4">
+                      <img src={book.cover_image} alt={book.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+                      <h3 className="text-xl font-semibold">{book.title}</h3>
+                      <p className="text-gray-600">by {book.author}</p>
+                      <p className="mt-2">Votes: {book.vote_count}</p>
+                      <div className="mt-4 flex justify-between items-center">
+                        <Link
+                          to={`/audiobook/${book.id}`}
+                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={() => handleVote(book.id)}
+                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        >
+                          Vote
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <Navigate to="/login" />
+            )
           } />
-          <Route path="/audiobook/:id" element={<AudiobookDetails />} />
+          <Route path="/audiobook/:id" element={
+            isAuthenticated ? <AudiobookDetails /> : <Navigate to="/login" />
+          } />
         </Routes>
       </div>
     </Router>
