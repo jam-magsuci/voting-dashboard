@@ -7,7 +7,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=['https://voting-dashboard-frontend.onrender.com', 'http://localhost:5173'])
+CORS(app, supports_credentials=True, origins=['https://voting-dashboard-homepage.onrender.com', 'http://localhost:5173'])
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 
