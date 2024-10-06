@@ -70,16 +70,39 @@ def get_audiobook(id):
 @login_required
 def vote_audiobook(id):
     conn = get_db_connection()
+    
+    # Check if the user has already voted for this audiobook
+    existing_vote = conn.execute('SELECT * FROM user_votes WHERE user_id = ? AND audiobook_id = ?', 
+                                 (current_user.id, id)).fetchone()
+    
+    if existing_vote:
+        conn.close()
+        return jsonify({"error": "You have already voted for this audiobook"}), 400
+    
     audiobook = conn.execute('SELECT * FROM audiobooks WHERE id = ?', (id,)).fetchone()
     if audiobook is None:
         conn.close()
         return jsonify({"error": "Audiobook not found"}), 404
     
+    # Record the user's vote
+    conn.execute('INSERT INTO user_votes (user_id, audiobook_id) VALUES (?, ?)', (current_user.id, id))
+    
+    # Increment the vote count
     conn.execute('UPDATE audiobooks SET vote_count = vote_count + 1 WHERE id = ?', (id,))
     conn.commit()
+    
     updated_audiobook = conn.execute('SELECT * FROM audiobooks WHERE id = ?', (id,)).fetchone()
     conn.close()
     return jsonify(dict(updated_audiobook))
+
+@app.route('/api/audiobooks/<int:id>/user_vote', methods=['GET'])
+@login_required
+def get_user_vote(id):
+    conn = get_db_connection()
+    vote = conn.execute('SELECT * FROM user_votes WHERE user_id = ? AND audiobook_id = ?', 
+                        (current_user.id, id)).fetchone()
+    conn.close()
+    return jsonify({"has_voted": vote is not None})
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
